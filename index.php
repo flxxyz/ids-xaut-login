@@ -9,7 +9,6 @@ $password = '';  // 登陆密码
 
 $http = new Http($url, $username, $password);
 $http->get();
-$url = $http->login();
-//var_dump($url);
+$http->login();
 $result = $http->go();
 echo $result;
