@@ -1,7 +1,9 @@
 <?php
+
 namespace App;
 
-class Http {
+class Http
+{
     public $url;
     public $cookie = '';
     protected $user;
@@ -17,15 +19,16 @@ class Http {
         //$this->cookie = $cookie;
     }
 
-    public function get() {
+    public function get()
+    {
         $url = $this->url;
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL,$url);
+        curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HEADER, true);
         //curl_setopt($ch, CURLOPT_NOBODY, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER , false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_USERAGENT, self::UserAgent);
 
         $ob = self::ob($ch);
@@ -40,15 +43,16 @@ class Http {
             return false;
     }
 
-    protected function handleParams($html) {
+    protected function handleParams($html)
+    {
         $user = $this->user;
         $pwd = $this->pwd;
 
         preg_match('<input type="hidden" name="lt" value="(\S+)" />', $html, $match);
         $lt = $match[1];
-        preg_match('<input type="hidden" name="execution" value="(\S+)" />', $html ,$match);
+        preg_match('<input type="hidden" name="execution" value="(\S+)" />', $html, $match);
         $execution = $match[1];
-        preg_match('<input type="hidden" name="_eventId" value="(\S+)" />', $html ,$match);
+        preg_match('<input type="hidden" name="_eventId" value="(\S+)" />', $html, $match);
         $_eventId = $match[1];
         return [
             'username' => $user,
@@ -59,7 +63,8 @@ class Http {
         ];
     }
 
-    public function login() {
+    public function login()
+    {
         //$url = 'http://my.xaut.edu.cn/index.portal';
         $url = $this->url;
         $cookie = $this->cookie;
@@ -107,7 +112,7 @@ class Http {
 
         list($header, $body) = explode("\r\n\r\n", $ob['result'], 2);
         preg_match_all("/Set\-Cookie:([^;]*);/", $header, $matches);
-        $this->cookie  = substr($matches[1][1], 1);
+        $this->cookie = substr($matches[1][1], 1);
         preg_match_all('/Location:([^;]*)\nC/', $header, $match);
         $this->url = trim($match[1][0]);
         //$this->url = 'http://ids.xaut.edu.cn/authserver/login';
@@ -115,7 +120,8 @@ class Http {
         return $this->url;
     }
 
-    public function go($url = '') {
+    public function go($url = '')
+    {
         $url = $this->url;
 
         $ch = curl_init();
@@ -129,7 +135,7 @@ class Http {
         preg_match_all("/Location:([^;]*)\nC/", $header, $matches);
         $this->url = trim($matches[1][0]);
         preg_match_all("/Set\-Cookie:([^;]*);/", $header, $matches);
-        $this->cookie  = substr($matches[1][0], 1);
+        $this->cookie = substr($matches[1][0], 1);
 
         // 进入系统首页
         $arr = [
@@ -148,7 +154,7 @@ class Http {
         curl_setopt($ch, CURLOPT_URL, $this->url);
         curl_setopt($ch, CURLOPT_HEADER, true);
         curl_setopt($ch, CURLOPT_NOBODY, false);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET' );
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $arr);
@@ -166,11 +172,12 @@ class Http {
     {
         list($header, $body) = explode("\r\n\r\n", $data, 2);
         preg_match_all("/Set\-Cookie:([^;]*);/", $header, $matches);
-        $this->cookie  = substr($matches[1][0], 1);
+        $this->cookie = substr($matches[1][0], 1);
         return $body;
     }
 
-    protected function ob($ch) {
+    protected function ob($ch)
+    {
         ob_start();
         $result['info'] = curl_getinfo($ch);
         $result['code'] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
