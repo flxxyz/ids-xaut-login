@@ -1,7 +1,9 @@
 <?php
+
 namespace App;
 
-class Http {
+class Http
+{
     public $url;
     public $cookie = '';
     protected $user;
@@ -14,25 +16,25 @@ class Http {
         $this->url = $url;
         $this->user = $user;
         $this->pwd = $pwd;
-        //$this->cookie = $cookie;
     }
 
-    public function get() {
+    /**
+     * 取回需要提交的表单参数
+     * @return bool
+     */
+    public function get()
+    {
         $url = $this->url;
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL,$url);
+        curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HEADER, true);
-        //curl_setopt($ch, CURLOPT_NOBODY, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER , false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_USERAGENT, self::UserAgent);
 
         $ob = self::ob($ch);
-
         $content = self::split($ob['result']);
-
-        //return $content;
 
         if ($ob['code'] != '404' && $ob['result'])
             $this->params = self::handleParams($content);
@@ -40,15 +42,21 @@ class Http {
             return false;
     }
 
-    protected function handleParams($html) {
+    /**
+     * 处理参数
+     * @param $html
+     * @return array
+     */
+    protected function handleParams($html)
+    {
         $user = $this->user;
         $pwd = $this->pwd;
 
         preg_match('<input type="hidden" name="lt" value="(\S+)" />', $html, $match);
         $lt = $match[1];
-        preg_match('<input type="hidden" name="execution" value="(\S+)" />', $html ,$match);
+        preg_match('<input type="hidden" name="execution" value="(\S+)" />', $html, $match);
         $execution = $match[1];
-        preg_match('<input type="hidden" name="_eventId" value="(\S+)" />', $html ,$match);
+        preg_match('<input type="hidden" name="_eventId" value="(\S+)" />', $html, $match);
         $_eventId = $match[1];
         return [
             'username' => $user,
@@ -59,8 +67,12 @@ class Http {
         ];
     }
 
-    public function login() {
-        //$url = 'http://my.xaut.edu.cn/index.portal';
+    /**
+     * 登陆
+     * @return string
+     */
+    public function login()
+    {
         $url = $this->url;
         $cookie = $this->cookie;
         $params = $this->params;
@@ -68,7 +80,6 @@ class Http {
         $arr = [
             'Host: ids.xaut.edu.cn',
             "User-Agent: " . self::UserAgent,
-            //'Referer: ' . $url,
             'Upgrade-Insecure-Requests: 1',
             'Origin: http://ids.xaut.edu.cn',
             'Cache-Control: max-age=0',
@@ -82,13 +93,10 @@ class Http {
             'Connection: keep-alive',
         ];
 
-        //return $arr;
-
+        // 构造提交数据
         $account = 'username=' . $params['username'] . '&password=' . $params['password'];
-        $param = '&lt=' . $params['lt'] . '&execution=' . $params['execution'];
-        $post = $account . $param . '&_eventId=' . $params['_eventId'];
-
-        //return $account;
+        $param = '&lt=' . $params['lt'] . '&execution=' . $params['execution'] . '&_eventId=' . $params['_eventId'];
+        $post = $account . $param;
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -107,17 +115,22 @@ class Http {
 
         list($header, $body) = explode("\r\n\r\n", $ob['result'], 2);
         preg_match_all("/Set\-Cookie:([^;]*);/", $header, $matches);
-        $this->cookie  = substr($matches[1][1], 1);
+        $this->cookie = substr($matches[1][1], 1);
         preg_match_all('/Location:([^;]*)\nC/', $header, $match);
         $this->url = trim($match[1][0]);
-        //$this->url = 'http://ids.xaut.edu.cn/authserver/login';
 
         return $this->url;
     }
 
-    public function go($url = '') {
+    /**
+     * 进入系统页面
+     * @param string $url
+     * @return mixed
+     */
+    public function go($url = '')
+    {
         $url = $this->url;
-
+        
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HEADER, true);
@@ -129,7 +142,7 @@ class Http {
         preg_match_all("/Location:([^;]*)\nC/", $header, $matches);
         $this->url = trim($matches[1][0]);
         preg_match_all("/Set\-Cookie:([^;]*);/", $header, $matches);
-        $this->cookie  = substr($matches[1][0], 1);
+        $this->cookie = substr($matches[1][0], 1);
 
         // 进入系统首页
         $arr = [
@@ -148,7 +161,7 @@ class Http {
         curl_setopt($ch, CURLOPT_URL, $this->url);
         curl_setopt($ch, CURLOPT_HEADER, true);
         curl_setopt($ch, CURLOPT_NOBODY, false);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET' );
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $arr);
@@ -162,15 +175,26 @@ class Http {
         return $body;
     }
 
+    /**
+     * 取出跳转所需的response
+     * @param $data
+     * @return mixed
+     */
     protected function split($data)
     {
         list($header, $body) = explode("\r\n\r\n", $data, 2);
         preg_match_all("/Set\-Cookie:([^;]*);/", $header, $matches);
-        $this->cookie  = substr($matches[1][0], 1);
+        $this->cookie = substr($matches[1][0], 1);
         return $body;
     }
 
-    protected function ob($ch) {
+    /**
+     * 构造一下curl返回的信息
+     * @param $ch
+     * @return mixed
+     */
+    protected function ob($ch)
+    {
         ob_start();
         $result['info'] = curl_getinfo($ch);
         $result['code'] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
