@@ -16,9 +16,12 @@ class Http
         $this->url = $url;
         $this->user = $user;
         $this->pwd = $pwd;
-        //$this->cookie = $cookie;
     }
 
+    /**
+     * 取回需要提交的表单参数
+     * @return bool
+     */
     public function get()
     {
         $url = $this->url;
@@ -26,16 +29,12 @@ class Http
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HEADER, true);
-        //curl_setopt($ch, CURLOPT_NOBODY, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_USERAGENT, self::UserAgent);
 
         $ob = self::ob($ch);
-
         $content = self::split($ob['result']);
-
-        //return $content;
 
         if ($ob['code'] != '404' && $ob['result'])
             $this->params = self::handleParams($content);
@@ -43,6 +42,11 @@ class Http
             return false;
     }
 
+    /**
+     * 处理参数
+     * @param $html
+     * @return array
+     */
     protected function handleParams($html)
     {
         $user = $this->user;
@@ -63,9 +67,12 @@ class Http
         ];
     }
 
+    /**
+     * 登陆
+     * @return string
+     */
     public function login()
     {
-        //$url = 'http://my.xaut.edu.cn/index.portal';
         $url = $this->url;
         $cookie = $this->cookie;
         $params = $this->params;
@@ -73,7 +80,6 @@ class Http
         $arr = [
             'Host: ids.xaut.edu.cn',
             "User-Agent: " . self::UserAgent,
-            //'Referer: ' . $url,
             'Upgrade-Insecure-Requests: 1',
             'Origin: http://ids.xaut.edu.cn',
             'Cache-Control: max-age=0',
@@ -87,13 +93,10 @@ class Http
             'Connection: keep-alive',
         ];
 
-        //return $arr;
-
+        // 构造提交数据
         $account = 'username=' . $params['username'] . '&password=' . $params['password'];
-        $param = '&lt=' . $params['lt'] . '&execution=' . $params['execution'];
-        $post = $account . $param . '&_eventId=' . $params['_eventId'];
-
-        //return $account;
+        $param = '&lt=' . $params['lt'] . '&execution=' . $params['execution'] . '&_eventId=' . $params['_eventId'];
+        $post = $account . $param;
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -115,15 +118,19 @@ class Http
         $this->cookie = substr($matches[1][1], 1);
         preg_match_all('/Location:([^;]*)\nC/', $header, $match);
         $this->url = trim($match[1][0]);
-        //$this->url = 'http://ids.xaut.edu.cn/authserver/login';
 
         return $this->url;
     }
 
+    /**
+     * 进入系统页面
+     * @param string $url
+     * @return mixed
+     */
     public function go($url = '')
     {
         $url = $this->url;
-
+        
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HEADER, true);
@@ -168,6 +175,11 @@ class Http
         return $body;
     }
 
+    /**
+     * 取出跳转所需的response
+     * @param $data
+     * @return mixed
+     */
     protected function split($data)
     {
         list($header, $body) = explode("\r\n\r\n", $data, 2);
@@ -176,6 +188,11 @@ class Http
         return $body;
     }
 
+    /**
+     * 构造一下curl返回的信息
+     * @param $ch
+     * @return mixed
+     */
     protected function ob($ch)
     {
         ob_start();
