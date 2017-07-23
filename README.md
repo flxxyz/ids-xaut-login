@@ -5,5 +5,5 @@
 围观他女装 ☞ [夜雨酱][2]
 
 
-[1]: https://github.com/ghosx
+[1]: https://github.com/ghosx/xaut-ids-login
 [2]: http://www.sanko.me/
