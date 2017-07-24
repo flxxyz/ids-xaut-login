@@ -36,7 +36,7 @@ class Http
         $ob = self::ob($ch);
         $content = self::split($ob['result']);
 
-        if ($ob['code'] != '404' && $ob['result'])
+        if ( $ob['code'] != '404' && $ob['result'] )
             $this->params = self::handleParams($content);
         else
             return false;
@@ -44,7 +44,9 @@ class Http
 
     /**
      * 处理参数
+     *
      * @param $html
+     *
      * @return array
      */
     protected function handleParams($html)
@@ -124,13 +126,15 @@ class Http
 
     /**
      * 进入系统页面
+     *
      * @param string $url
+     *
      * @return mixed
      */
     public function go($url = '')
     {
         $url = $this->url;
-        
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HEADER, true);
@@ -177,7 +181,9 @@ class Http
 
     /**
      * 取出跳转所需的response
+     *
      * @param $data
+     *
      * @return mixed
      */
     protected function split($data)
@@ -190,7 +196,9 @@ class Http
 
     /**
      * 构造一下curl返回的信息
+     *
      * @param $ch
+     *
      * @return mixed
      */
     protected function ob($ch)
